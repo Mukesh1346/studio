@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import "./auth.css";
 import Image from "next/image";
-import pic1 from '@/Assets/Images/Background1.jpg'
+import pic1 from '@/app/Assets/Images/login.webp'
 
 export default function Signup() {
   const router = useRouter();
@@ -104,7 +104,7 @@ export default function Signup() {
         {/* Right Image Section */}
         <div className="signup-image-section">
           <div className="image-box">
-            <Image src={pic1} alt="Signup" />
+            <Image src={pic1} alt="Signup" height={500} width={300} />
           </div>
         </div>
       </div>

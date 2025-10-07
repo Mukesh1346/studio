@@ -2,6 +2,7 @@
 import React from "react";
 import { FaCartShopping } from "react-icons/fa6";
 import "./navbar.css";
+import Link from "next/link";
 
 export default function Navbar() {
   return (
@@ -40,8 +41,8 @@ export default function Navbar() {
 
         {/* Right: Cart + Login */}
         <div className="d-flex align-items-center gap-3">
-          <FaCartShopping className="fs-4 cart-icon" />
-          <button className="loginBtn">Login</button>
+        <Link href="/addtocart">  <FaCartShopping className="fs-4 cart-icon" /></Link>
+          <Link href="/login"><button className="loginBtn">Login</button></Link>
         </div>
 
         {/* Toggler (Mobile) */}
