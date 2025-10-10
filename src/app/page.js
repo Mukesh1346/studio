@@ -5,13 +5,17 @@ import Premium from "./Components/Premium/Premium";
 import Testimonial from "./Components/Testimonial/Testimonial";
 import Features from "./Components/Features/Features";
 import ReelSection from "./Components/ReelSection/reelSection";
+import VideoSection from "./Components/VideoSection/VideoSection";
+import VideoSection2 from "./Components/VideoSection2/VideoSection2";
 
 export default function Home() {
   return (
    <>
     <Banner/>
     <ReelSection/>
+    <VideoSection/>
     <Premium/>
+    <VideoSection2/>
    <Testimonial/>
    <Features/>
    </>
