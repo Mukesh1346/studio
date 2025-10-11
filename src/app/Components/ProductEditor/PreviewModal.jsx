@@ -3,13 +3,14 @@ import { useEffect, useState, useMemo } from "react";
 
 const LANDSCAPE = [
   { label: "12×9", w: 12, h: 9, price: 699 },
-  { label: "16×12", w: 16, h: 12, price: 899 },
-  { label: "18×12", w: 18, h: 12, price: 1099 },
-  { label: "21×15", w: 21, h: 15, price: 1399 },
-  { label: "30×20", w: 30, h: 20, price: 1699 },
-  { label: "35×23", w: 35, h: 23, price: 1899 },
-  { label: "48×36", w: 48, h: 36, price: 2399 },
+  { label: "16×12", w: 16, h: 12, price: 1099 },
+  { label: "18×12", w: 18, h: 12, price: 1499 },
+  { label: "21×15", w: 21, h: 15, price: 1999 },
+  { label: "30×20", w: 30, h: 20, price: 3499 },
+  { label: "35×23", w: 33, h: 23, price: 4499 },
+  { label: "48×36", w: 41, h: 30, price: 5999 },
 ];
+
 const PORTRAIT = LANDSCAPE.map((s) => ({
   label: `${s.h}×${s.w}`,
   w: s.h,
@@ -17,7 +18,6 @@ const PORTRAIT = LANDSCAPE.map((s) => ({
   price: s.price,
 }));
 
-// Position of the acrylic area on the wall (relative)
 const FRAME_RECT_PCT = { left: 35, top: 7, width: 22, height: 33 };
 
 function sizeScale(selected, base) {
@@ -34,22 +34,17 @@ export default function PreviewModal({ show, onClose, uploadedImage }) {
   const base = sizes[0];
   const scale = sizeScale(selected, base);
 
-  // Handle File or string for uploaded image
+  // Handle uploaded image and auto orientation
   useEffect(() => {
-    if (!uploadedImage) {
-      setPhotoUrl(null);
-      return;
-    }
+    if (!uploadedImage) return setPhotoUrl(null);
 
     let url;
     if (typeof uploadedImage === "string") url = uploadedImage;
     else if (uploadedImage instanceof File) url = URL.createObjectURL(uploadedImage);
-    else return;
 
     setPhotoUrl(url);
 
-    // Detect orientation
-    const img = new window.Image();
+    const img = new Image();
     img.onload = () => {
       if (img.naturalWidth > img.naturalHeight) {
         setOrientation("landscape");
@@ -66,10 +61,15 @@ export default function PreviewModal({ show, onClose, uploadedImage }) {
     };
   }, [uploadedImage]);
 
-  // === PRICE LOGIC ===
-  const total = useMemo(() => selected.price, [selected]);
+  // === DYNAMIC PRICE LOGIC ===
+  const total = useMemo(() => {
+    let price = selected.price;
+    if (thickness === "5mm") price += 500;
+    else if (thickness === "8mm") price += 1000;
+    return price;
+  }, [selected, thickness]);
 
-  // === THICKNESS SHADOW ===
+  // === DYNAMIC SHADOW INTENSITY ===
   const getShadow = () => {
     switch (thickness) {
       case "3mm":
@@ -103,7 +103,7 @@ export default function PreviewModal({ show, onClose, uploadedImage }) {
           {/* BODY */}
           <div className="modal-body">
             <div className="row g-4">
-              {/* LEFT SIDE: Wall Mockup */}
+              {/* LEFT SIDE */}
               <div className="col-lg-7">
                 {/* Orientation toggle */}
                 <div className="d-flex align-items-center gap-2 mb-3">
@@ -135,7 +135,7 @@ export default function PreviewModal({ show, onClose, uploadedImage }) {
                   </div>
                 </div>
 
-                {/* Wall mockup */}
+                {/* Wall Mockup */}
                 <div
                   className="position-relative w-100 rounded shadow"
                   style={{
@@ -146,10 +146,9 @@ export default function PreviewModal({ show, onClose, uploadedImage }) {
                     overflow: "hidden",
                   }}
                 >
-                  {/* Labels */}
+                  {/* Dimension Labels */}
                   {photoUrl && (
                     <>
-                      {/* Width */}
                       <div
                         style={{
                           position: "absolute",
@@ -164,7 +163,6 @@ export default function PreviewModal({ show, onClose, uploadedImage }) {
                         {selected.w} inches ({(selected.w * 2.54).toFixed(2)} cm)
                       </div>
 
-                      {/* Height */}
                       <div
                         style={{
                           position: "absolute",
@@ -179,7 +177,6 @@ export default function PreviewModal({ show, onClose, uploadedImage }) {
                         {selected.h} inches ({(selected.h * 2.54).toFixed(2)} cm)
                       </div>
 
-                      {/* Thickness */}
                       <div
                         style={{
                           position: "absolute",
@@ -200,7 +197,7 @@ export default function PreviewModal({ show, onClose, uploadedImage }) {
                   <div
                     className="position-absolute"
                     style={{
-                      marginTop: "100px",
+                      marginTop: "67px",
                       left: `${FRAME_RECT_PCT.left}%`,
                       top: `${FRAME_RECT_PCT.top}%`,
                       width: `${FRAME_RECT_PCT.width}%`,
@@ -219,16 +216,15 @@ export default function PreviewModal({ show, onClose, uploadedImage }) {
                         backgroundSize: "cover",
                         backgroundPosition: "center",
                         boxShadow: getShadow(),
-                        borderRadius: 12,
                       }}
                     />
                   </div>
                 </div>
               </div>
 
-              {/* RIGHT SIDE: Options */}
+              {/* RIGHT SIDE */}
               <div className="col-lg-5">
-                {/* PRICE SECTION */}
+                {/* PRICE */}
                 <h4 className="fw-semibold mb-2">₹ {total}</h4>
                 <p className="text-success small mb-3">Only 8 Acrylic's left!</p>
 
@@ -240,7 +236,9 @@ export default function PreviewModal({ show, onClose, uploadedImage }) {
                       <button
                         key={s.label}
                         className={`btn btn-sm ${
-                          selected.label === s.label ? "btn-dark" : "btn-outline-dark"
+                          selected.label === s.label
+                            ? "btn-dark"
+                            : "btn-outline-dark"
                         }`}
                         onClick={() => setSelected(s)}
                       >
@@ -257,10 +255,15 @@ export default function PreviewModal({ show, onClose, uploadedImage }) {
                     {["3mm", "5mm", "8mm"].map((t) => (
                       <button
                         key={t}
-                        className={`btn btn-outline-dark ${thickness === t ? "active" : ""}`}
+                        className={`btn btn-outline-dark ${
+                          thickness === t ? "active" : ""
+                        }`}
                         onClick={() => setThickness(t)}
                         style={{
-                          border: thickness === t ? "2px solid #000" : "1px solid #ccc",
+                          border:
+                            thickness === t
+                              ? "2px solid #000"
+                              : "1px solid #ccc",
                           background: thickness === t ? "#111" : "#fff",
                           color: thickness === t ? "#fff" : "#111",
                           marginRight: 8,
@@ -277,8 +280,10 @@ export default function PreviewModal({ show, onClose, uploadedImage }) {
                   </div>
                 </div>
 
-                {/* BUY NOW */}
-                <button className="btn btn-danger btn-lg w-100" disabled={!photoUrl}>
+                <button
+                  className="btn btn-danger btn-lg w-100"
+                  disabled={!photoUrl}
+                >
                   Buy it now
                 </button>
               </div>

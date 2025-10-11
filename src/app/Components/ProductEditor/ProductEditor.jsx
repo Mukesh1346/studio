@@ -3,20 +3,23 @@
 import { useState, useRef } from "react";
 import Image from "next/image";
 import { Rnd } from "react-rnd";
-import PreviewModal from "./PreviewModal"; // ✅ new
+import html2canvas from "html2canvas"; // ✅ added
+import PreviewModal from "./PreviewModal";
 
 export default function ProductEditor({ show, onClose }) {
   const [uploadedImage, setUploadedImage] = useState(null);
+  const [mergedImage, setMergedImage] = useState(null); // ✅ new: store final merged image
   const [text, setText] = useState("type name");
   const [textColor, setTextColor] = useState("#ff0000");
   const [orientation, setOrientation] = useState("horizontal");
   const [isLandscape, setIsLandscape] = useState(true);
-  const [showPreview, setShowPreview] = useState(false); // ✅ added
+  const [showPreview, setShowPreview] = useState(false);
 
   const [imageSize, setImageSize] = useState({ width: 200, height: 200 });
   const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
   const containerRef = useRef(null);
 
+  // Handle file upload and detect aspect ratio
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -49,18 +52,31 @@ export default function ProductEditor({ show, onClose }) {
     }
   };
 
-  const handleSave = () => {
-    if (!uploadedImage) {
-      alert("Please upload an image first!");
+  // ✅ Save handler: merge image + text into one image using html2canvas
+  const handleSave = async () => {
+    if (!containerRef.current) {
+      alert("Please upload and customize your image first!");
       return;
     }
 
-    // Close the editor, then show preview modal
-    onClose();
-    setTimeout(() => setShowPreview(true), 300);
+    try {
+      const canvas = await html2canvas(containerRef.current, {
+        backgroundColor: null,
+        useCORS: true,
+        scale: 2, // High quality
+      });
+
+      const dataUrl = canvas.toDataURL("image/png");
+      setMergedImage(dataUrl); // ✅ save merged result
+
+      // Close editor and open Preview Modal
+      onClose();
+      setTimeout(() => setShowPreview(true), 300);
+    } catch (err) {
+      console.error("Error generating preview image:", err);
+    }
   };
 
-  // 🧩 keep working upload/edit modal exactly as before
   return (
     <>
       {show && (
@@ -72,25 +88,31 @@ export default function ProductEditor({ show, onClose }) {
         >
           <div className="modal-dialog modal-lg modal-dialog-centered" role="document">
             <div className="modal-content">
+              {/* HEADER */}
               <div className="modal-header">
                 <h5 className="modal-title fw-semibold">Customise Product</h5>
                 <button type="button" className="btn-close" onClick={onClose}></button>
               </div>
 
+              {/* BODY */}
               <div className="modal-body">
-                {/* Orientation Buttons */}
+                {/* Orientation buttons */}
                 <div className="mb-3">
                   <div className="btn-group" role="group">
                     <button
                       type="button"
-                      className={`btn btn-${orientation === "vertical" ? "primary" : "outline-primary"}`}
+                      className={`btn btn-${
+                        orientation === "vertical" ? "primary" : "outline-primary"
+                      }`}
                       onClick={() => setOrientation("vertical")}
                     >
                       Vertical
                     </button>
                     <button
                       type="button"
-                      className={`btn btn-${orientation === "horizontal" ? "primary" : "outline-primary"}`}
+                      className={`btn btn-${
+                        orientation === "horizontal" ? "primary" : "outline-primary"
+                      }`}
                       onClick={() => setOrientation("horizontal")}
                     >
                       Horizontal
@@ -98,7 +120,7 @@ export default function ProductEditor({ show, onClose }) {
                   </div>
                 </div>
 
-                {/* File + Color Picker */}
+                {/* Upload + Color */}
                 <div className="d-flex align-items-center gap-2 mb-3">
                   <input
                     type="file"
@@ -125,7 +147,7 @@ export default function ProductEditor({ show, onClose }) {
                   />
                 </div>
 
-                {/* Preview Canvas */}
+                {/* Editor Canvas */}
                 <div
                   ref={containerRef}
                   className="border rounded position-relative mx-auto bg-light"
@@ -149,6 +171,7 @@ export default function ProductEditor({ show, onClose }) {
                     overflow: "hidden",
                   }}
                 >
+                  {/* Wall Background */}
                   <Image
                     src="/Images/wall-background.png"
                     alt="Background"
@@ -156,6 +179,7 @@ export default function ProductEditor({ show, onClose }) {
                     style={{ objectFit: "cover", zIndex: 1 }}
                   />
 
+                  {/* Uploaded Image */}
                   {uploadedImage && (
                     <Rnd
                       size={imageSize}
@@ -185,6 +209,7 @@ export default function ProductEditor({ show, onClose }) {
                     </Rnd>
                   )}
 
+                  {/* Editable Text */}
                   <Rnd
                     bounds="parent"
                     default={{ x: 100, y: 200, width: 150, height: 40 }}
@@ -208,6 +233,7 @@ export default function ProductEditor({ show, onClose }) {
                 </div>
               </div>
 
+              {/* FOOTER */}
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={onClose}>
                   Close
@@ -221,11 +247,11 @@ export default function ProductEditor({ show, onClose }) {
         </div>
       )}
 
-      {/* ✅ Wall Preview Modal */}
+      {/* ✅ Wall Preview Modal with merged image */}
       <PreviewModal
         show={showPreview}
         onClose={() => setShowPreview(false)}
-        uploadedImage={uploadedImage}
+        uploadedImage={mergedImage}
       />
     </>
   );
