@@ -9,7 +9,7 @@ export default function Navbar() {
     <nav className="navbar navbar-expand-lg custom-navbar">
       <div className="container d-flex justify-content-between align-items-center">
         {/* Left: Logo */}
-        <a className="navbar-brand fw-bold logo" href="#">
+        <a className="navbar-brand fw-bold logo" href="/">
           Studio
         </a>
 
@@ -22,8 +22,8 @@ export default function Navbar() {
               </a>
             </li>
             <li className="nav-item">
-              <a className="nav-link" href="#">
-                Shop
+              <a className="nav-link" href="/products">
+                Products
               </a>
             </li>
             <li className="nav-item">
